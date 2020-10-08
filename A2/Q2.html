@@ -1,0 +1,234 @@
+<!-- yul905
+11219371
+Yuwen Liu
+CMPT384 -->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<title>A2</title>
+	<script type="text/javascript" src="d3.v5.min.js"></script>
+	<script type="text/javascript" src="numeric.js"></script>
+	<script type="text/javascript" src="mds.js"></script>
+	<style type="text/css">
+		/* No style rules here yet */
+	</style>
+</head>
+
+<body>
+
+	<script type="text/javascript">
+
+		var width = 600;
+		var height = 300;
+
+		var dataset;
+		var coordinates;
+
+		//Read the data
+		d3.csv("a2.csv").then(function (data) {
+			dataset = data;
+			generateVisualization();
+		});
+
+		function generateVisualization() {
+
+
+			//Create the dataset matrix
+			var M = new Array(dataset.length);
+			for (var i = 0; i < dataset.length; i++) {
+				M[i] = new Array(5);
+			}
+			for (var i = 0; i < dataset.length; i++) {
+				M[i][0] = parseFloat(dataset[i].Q64);
+				M[i][1] = parseFloat(dataset[i].Q44);
+				M[i][2] = parseFloat(dataset[i].Q37);
+				M[i][3] = parseFloat(dataset[i].Q35);
+				M[i][4] = parseFloat(dataset[i].Q34);
+			}
+			console.log(M)
+
+
+
+
+			//INSTRUCTION 1
+			//compute the mean of the columns and put that into colMeans
+			var colMeans = new Array(5);
+			//WRITE YOUR CODE//******************************************************
+			// For part 3 helper function section
+			var single_3 = [];
+			var part3;
+			part3 = new Array(5);
+			for (let i = 0; i < part3.length; i++) {
+				part3[i] = new Array(M.length)				
+			}
+
+
+			for (let i = 0; i < M.length; i++) {
+				for (let j = 0; j < M[i].length; j++) {
+					part3[j][i] = M[i][j];					
+				}
+			}
+			// helper end
+
+			for (let i = 0; i < colMeans.length; i++) {
+				colMeans[i] = 0;
+
+			}
+			for (let i = 0; i < M.length; i++) {
+				for (let j = 0; j < M[i].length; j++) {
+					colMeans[j] += M[i][j];
+				}
+			}
+			for (let i = 0; i < colMeans.length; i++) {
+				colMeans[i] = colMeans[i] / M.length;
+			}
+			console.log(colMeans);
+			//If you do things right, then this will log 2.7xxx in the console
+			console.log(colMeans[4]);
+
+			function mean(arr1) {
+				var total = 0;
+				var length = arr1.length;
+
+				for (var i = 0; i < length; i++) {
+					total = total + arr1[i]
+				}
+
+				return total / length;
+			}
+
+
+			function covariance(arr1, arr2) {
+				var sum = 0;
+				for (var i = 0; i < arr1.length; i++)
+					sum = sum + (arr1[i] - mean(arr1)) * (arr2[i] - mean(arr2));
+				return sum / (arr1.length - 1);
+			}
+
+
+			//INSTRUCTION 2
+			//recall the steps from the PCA lecture. At this step you have to subtract the column mean from each M[i][j], which is stored in colMeans variable
+
+			//WRITE YOUR CODE//******************************************************
+			// console.log(M);
+			// for (let i = 0; i < M.length; i++) {
+			// 	for (let j = 0; j < colMeans.length; j++) {
+			// 		M[i][j] -= colMeans[j];
+			// 	}
+
+			// }
+			//If you do things right, then this will log -0.7xxx in the console				
+			console.log(M[77][4]);
+
+
+			//INSTRUCTION 3
+			//now you have to create a covariance matrix C, where C[i][j] will denote the covariance of column i and j
+			//a function to compute covarience of two columns are already given to you: covariance(col1,col2) ;
+			var C = new Array(5);
+			//WRITE YOUR CODE//******************************************************
+			for (let i = 0; i < C.length; i++) {
+				C[i] = new Array(5);
+			}
+
+			for (let i = 0; i < C.length; i++) {
+				for (let j = 0; j < C[i].length; j++) {
+					C[i][j] = covariance(part3[i], part3[j])					
+				}				
+			}
+			//If you do things right, then this will log 1.6xxx in the console	
+			console.log(C[4][4]);
+
+			//the following block will compute the eigenValues and eigenVec. 	 
+			var ret = numeric.svd(C);
+			var eigenValues = ret.S;
+			var eigenVec = ret.U;
+			console.log("These are the eigenvec and eigenvalues");
+			console.log(ret.U); //eigenVec 
+			console.log(ret.S); //eigenValues
+
+			//INSTRUCTION 4
+			//now look at the console and find out the largest two eigenvalues. If you find them at the ith and jth location, then create an array like selectedvectors = [i, j] and assign that to the "selectedvectors" variable.
+			var selectedvectors;
+			//WRITE YOUR CODE//******************************************************
+			selectedvectors = [0,1]
+
+
+			/*****************/
+			/*Well Done! You completed everything by now!*/
+			/*****************/
+
+
+			//this code block will select the eigenvectors corresponding to the eigenvalues
+			var PComp1 = eigenVec.map(function (value, index) { return value[selectedvectors[0]]; });
+			var PComp2 = eigenVec.map(function (value, index) { return value[selectedvectors[1]]; });
+
+
+			//this code block will find the x and y coordinates.
+			var xloc = M.map(function (row) {
+				return numeric.mul(row, PComp1).reduce((a, b) => a + b, 0);
+			});
+			var yloc = M.map(function (row) {
+				return numeric.mul(row, PComp2).reduce((a, b) => a + b, 0);
+			});
+
+
+			locations = [];
+
+			for (var i = 0; i < dataset.length; i++) {
+				locations.push({ x: xloc[i], y: yloc[i], c: dataset[i].Q9Age });
+			}
+			//console.log(locations);
+
+			//create svg element
+			var svg = d3.select("body")
+				.append("svg")
+				.attr("width", width)
+				.attr("height", height);
+
+
+			var xScale = d3.scaleLinear()
+				.domain([
+					d3.min(Object.keys(locations), function (d) { return locations[d].x; }),
+					d3.max(Object.keys(locations), function (d) { return locations[d].x; }),
+				])
+				.range([10, width - 10]);
+
+			var yScale = d3.scaleLinear()
+				.domain([
+					d3.min(Object.keys(locations), function (d) { return locations[d].y; }),
+					d3.max(Object.keys(locations), function (d) { return locations[d].y; }),
+				])
+				.range([10, height - 10]);
+
+			//console.log(locations);
+			//add circles
+			svg.selectAll("circle").data(Object.keys(locations)).enter()
+				.append("circle")
+				.attr("cx", function (d) { return xScale(locations[d].x); })
+				.attr("cy", function (d) { return yScale(locations[d].y); })
+				.attr("r", function (d) { return 5; })
+				.attr("stroke-width", 1)
+				.attr("stroke", "black")
+				.attr("fill", function (d) {
+
+					if (locations[d].c == "1") return "green";
+					if (locations[d].c == "2") return "green";
+					if (locations[d].c == "3") return "green";
+					if (locations[d].c == "4") return "red";
+					if (locations[d].c == "5") return "red";
+					if (locations[d].c == "6") return "red";
+					if (locations[d].c == "7") return "red";
+
+				});
+
+
+		}
+
+
+	</script>
+</body>
+
+</html>
