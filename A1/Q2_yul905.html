@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+
+</head>
+
+<body>
+    <script>
+        var Max_V = 0.0;
+        var Min_V = 10000000000.00;
+        var newA = [];
+        var newA_F = [];
+
+        var column = [];
+        var oneD_array = [];
+
+
+
+        var new_v = 0;
+        d3.text("Pressure_reduced_to_MSL_msl.csv").then(data => {
+            data = d3.csvParseRows(data);
+            for (var i = 0; i < data.length; i++) {
+                new_a = [];
+                for (var j = 0; j < data[i].length; j++) {
+                    data[i][j] = parseFloat(data[i][j]);
+                    new_a.push(data[i][j])
+                }
+                if (Max_V < d3.max(data[i])) {
+                    Max_V = d3.max(data[i]);
+                }
+                if (Min_V > d3.min(data[i])) {
+                    Min_V = d3.min(data[i]);
+                }
+                newA.push(new_a);
+            }
+
+            for (var i = 0; i < data.length; i++) {
+                new_a_f = [];
+                // row.push(data[i][0]);
+
+                for (var j = 0; j < data[i].length; j++) {
+                    new_a_f.push((data[i][j] - Min_V) / (Max_V - Min_V));
+                }
+                newA_F.push(new_a_f);
+            }
+
+
+            for (var i = 0; i < newA_F.length; i++) {
+                column.push(newA_F[i][0]);
+                for (var j = 0; j < newA_F[i].length; j++) {
+                    oneD_array.push({
+                        cx: j,
+                        cy: i,
+                        r: 5 * newA_F[i][j]
+                    })
+                }
+            }
+            var row = newA_F[0];
+
+            // console.log(data);
+            console.log(row);
+            console.log(column);
+            console.log(oneD_array);
+
+
+
+
+
+            var width = 500, height = 500;
+            var svg = d3.select("body")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height);
+            var x = d3.scaleLinear()
+                .domain([0, 93])
+                .range([50, 470]);
+            svg.append("g")
+                .attr("transform", "translate(0," + 470 + ")")
+                .call(d3.axisBottom(x));
+
+            var y = d3.scaleLinear()
+                .domain([0, 65])
+                .range([470,20]);
+            svg.append("g")
+                .attr("transform", "translate(" +  50 +",0)")
+                .call(d3.axisLeft(y));
+
+            var circles = svg.selectAll('circle')
+                .data(oneD_array)
+                .enter()
+                .append('circle')
+                .attr("cx", function (d) {
+                    return x(d.cx);
+                })
+                .attr("cy", function (d) {
+                    return y(d.cy);
+                })
+                .attr("r", function (d) {
+                    return d.r;
+                }
+                )
+        }
+        )
+
+
+
+    </script>
+</body>
+
+</html>
