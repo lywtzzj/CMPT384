@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <style type="text/css">
+        .grid {
+            stroke: #000;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div id="total">
+        <div id="choose">
+            <button id="newCase">AverageofNewCase</button>
+            <button id="Inpatien">AverageofInpatienHospitalizations</button>
+            <button id="ICU">AverageofICUHospitalizations</button>
+        </div>
+        <div id="graph">
+
+        </div>
+    </div>
+</body>
+<script>
+
+    d3.csv("cases.csv").then(data => {
+        var dataset = data;
+        const dataM = [];
+        // for (let index = 0; index < dataset.length; index++) {
+        data.forEach(element => {
+            var emptyList = [];
+            emptyList.push(element["Date"]);
+            emptyList.push(element["New Cases"]);
+            emptyList.push(element["Inpatient Hospitalizations"]);
+            emptyList.push(element["ICU Hospitalizations"]);
+            dataM.push(emptyList);
+        });
+        let Aug = [];
+        for (let i = 0; i < 3; i++) {
+            Aug[i] = 0;
+        }
+        let Sep = [];
+        for (let i = 0; i < 3; i++) {
+            Sep[i] = 0;
+        }
+        let Oct = [];
+        for (let i = 0; i < 3; i++) {
+            Oct[i] = 0;
+        }
+        let AugCounter = 0;
+        let SepCounter = 0;
+        let OctCounter = 0;
+
+        for (let i = 0; i < dataM.length; i++) {
+            if (dataM[i][0] < "2020-09-01") {
+                AugCounter++;
+                // New
+                Aug[0] += parseInt(dataM[i][1]);
+                //Inpatient
+                Aug[1] += parseInt(dataM[i][2]);
+                // ICU
+                Aug[2] += parseInt(dataM[i][3]);
+            }
+            else if (dataM[i][0] < "2020-10-01") {
+                SepCounter++;
+                // New
+                Sep[0] += parseInt(dataM[i][1]);
+                //Inpatient
+                Sep[1] += parseInt(dataM[i][2]);
+                // ICU
+                Sep[2] += parseInt(dataM[i][3]);
+            }
+            else {
+                OctCounter++;
+                // New
+                Oct[0] += parseInt(dataM[i][1]);
+                //Inpatient
+                Oct[1] += parseInt(dataM[i][2]);
+                // ICU
+                Oct[2] += parseInt(dataM[i][3]);
+            }
+        }
+        for (let i = 0; i < 3; i++) {
+            Aug[i] /= AugCounter;
+        }
+        for (let i = 0; i < 3; i++) {
+            Sep[i] /= SepCounter;
+        }
+        for (let i = 0; i < 3; i++) {
+            Oct[i] /= OctCounter;
+        }
+
+        var dataL = [];
+        let counter = 0;
+        dataL[0] = 0;
+        for (let i = 0; i < 3; i++) {
+            counter++;
+            dataL[counter] = Aug[i];
+        }
+        dataL[counter += 1] = 0;
+
+        for (let i = 0; i < 3; i++) {
+            counter++;
+            dataL[counter] = Sep[i];
+        }
+        dataL[counter += 1] = 0;
+
+        for (let i = 0; i < 3; i++) {
+            counter++;
+            dataL[counter] = Oct[i];
+        }
+        console.log(dataL);
+
+        console.log(dataM, Aug, Sep, Oct);
+
+
+
+        // var width = 800, height = 700;
+        // var data = [-200, 200];
+
+
+
+        width = 890,
+            height = 450;
+        var svg = d3.select("#choose")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+        var xscale = d3.scaleOrdinal()
+            .domain([0, "Aug", "Sep", "Oct", " "])
+            .range([0, 130, 370, 610, 800]);
+
+
+        var yscale = d3.scaleLinear()
+            .domain([0, 1.8])
+            .range([100, -200]);
+
+        var x_axis = d3.axisBottom().scale(xscale);
+
+        var y_axis = d3.axisLeft().scale(yscale);
+
+        svg.append("g")
+            .attr("transform", "translate(50, 220)")
+            .call(y_axis);
+
+
+        svg.append("g")
+            .attr("transform", "translate(50, " + 320 + ")")
+            .call(x_axis)
+
+
+        var grid = svg.selectAll(".grid")
+            .data(yscale.ticks(10))
+            .enter().append("g")
+            .attr("class", "grid");
+
+
+        x = d3.range(10);
+
+        grid.append("line")
+            .attr("y1", yscale)
+            .attr("y2", yscale)
+            .attr("x1", 20)
+            .attr("x2", 850);
+
+        // each rect width = 60 30 between each month 
+
+        var color = ['rgb(0,0,0)', 'rgb(255,140,0)', 'rgb(255, 193, 37)', 'rgb(34, 139, 34)',
+
+            'rgb(0,0,0)', 'rgb(255,140,0)', 'rgb(255, 193, 37)', 'rgb(34, 139, 34)',
+
+            'rgb(0,0,0)', 'rgb(255,140,0)', 'rgb(255, 193, 37)', 'rgb(34, 139, 34)',
+
+        ];
+
+
+        var rectangles = svg.selectAll('rect')
+            .data(dataL)
+            .enter()
+            .append('rect')
+            .attr('x', function (d, i) {
+                return i * 60 + 30;
+            })
+            .attr('y', function (d) {
+                return 320 - (d * (300 / 1.8));
+            })
+            .attr('width', 60 - 3)
+            .attr('height', function (d) {
+                return d * (300 / 1.8);
+            })
+            .attr('fill', function (d, i) {
+                return color[i];
+            });
+    })
+
+</script>
+
+</html>
