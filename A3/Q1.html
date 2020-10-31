@@ -66,7 +66,7 @@
                 // ICU
                 Aug[2] += parseInt(dataM[i][3]);
             }
-            else if (dataM[i][0] < "2020-10-01") {
+            else if (dataM[i][0] < "2020-10-01" && dataM[i][0] > "2020-08-31") {
                 SepCounter++;
                 // New
                 Sep[0] += parseInt(dataM[i][1]);
@@ -85,16 +85,28 @@
                 Oct[2] += parseInt(dataM[i][3]);
             }
         }
-        for (let i = 0; i < 3; i++) {
-            Aug[i] /= AugCounter;
-        }
-        for (let i = 0; i < 3; i++) {
-            Sep[i] /= SepCounter;
-        }
-        for (let i = 0; i < 3; i++) {
-            Oct[i] /= OctCounter;
-        }
+        console.log(AugCounter);
+        console.log(SepCounter);
+        console.log(OctCounter);
+        // for (let i = 0; i < 3; i++) {
+        //     Aug[i] /= AugCounter;
+        // }
+        // for (let i = 0; i < 3; i++) {
+        //     Sep[i] /= SepCounter;
+        // }
+        // for (let i = 0; i < 3; i++) {
+        //     Oct[i] /= OctCounter;
+        // }
 
+        for (let i = 0; i < 3; i++) {
+            Aug[i] /= 31;
+        }
+        for (let i = 0; i < 3; i++) {
+            Sep[i] /= 30;
+        }
+        for (let i = 0; i < 3; i++) {
+            Oct[i] /= 15;
+        }
         var dataL = [];
         let counter = 0;
         dataL[0] = 0;
@@ -127,7 +139,7 @@
 
         width = 890,
             height = 450;
-        var svg = d3.select("#choose")
+        var svg = d3.select("#graph")
             .append("svg")
             .attr("width", width)
             .attr("height", height);
@@ -137,9 +149,18 @@
             .range([0, 130, 370, 610, 800]);
 
 
+        // var yscale = d3.scaleLinear()
+        //     .domain([0, 1.8])
+        //     .range([100, -200]);
+
         var yscale = d3.scaleLinear()
-            .domain([0, 1.8])
+            .domain([0, 2.5])
             .range([100, -200]);
+
+        var yscale_grid = d3.scaleLinear()
+            .domain([0, 2.5])
+            .range([320.5, 20.5]);
+            // 330.5, 29.5
 
         var x_axis = d3.axisBottom().scale(xscale);
 
@@ -149,14 +170,13 @@
             .attr("transform", "translate(50, 220)")
             .call(y_axis);
 
-
         svg.append("g")
             .attr("transform", "translate(50, " + 320 + ")")
             .call(x_axis)
 
 
         var grid = svg.selectAll(".grid")
-            .data(yscale.ticks(10))
+            .data(yscale_grid.ticks(13))
             .enter().append("g")
             .attr("class", "grid");
 
@@ -164,9 +184,9 @@
         x = d3.range(10);
 
         grid.append("line")
-            .attr("y1", yscale)
-            .attr("y2", yscale)
-            .attr("x1", 20)
+            .attr("y1", yscale_grid)
+            .attr("y2", yscale_grid)
+            .attr("x1", 50)
             .attr("x2", 850);
 
         // each rect width = 60 30 between each month 
@@ -187,13 +207,22 @@
             .attr('x', function (d, i) {
                 return i * 60 + 30;
             })
+            // .attr('y', function (d) {
+            //     return 320 - (d * (300 / 1.8));
+            // })
+            // .attr('width', 60 - 3)
+            // .attr('height', function (d) {
+            //     return d * (300 / 1.8);
+            // })
+
             .attr('y', function (d) {
-                return 320 - (d * (300 / 1.8));
+                return 320 - (d * (300 / 25));
             })
             .attr('width', 60 - 3)
             .attr('height', function (d) {
-                return d * (300 / 1.8);
+                return d * (300 / 25);
             })
+
             .attr('fill', function (d, i) {
                 return color[i];
             });
