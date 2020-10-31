@@ -99,7 +99,7 @@
         // }
 
         for (let i = 0; i < 3; i++) {
-            Aug[i] /= 31;
+            Aug[i] /= 28;
         }
         for (let i = 0; i < 3; i++) {
             Sep[i] /= 30;
@@ -154,7 +154,7 @@
         //     .range([100, -200]);
 
         var yscale = d3.scaleLinear()
-            .domain([0, 2.5])
+            .domain([0, 25])
             .range([100, -200]);
 
         var yscale_grid = d3.scaleLinear()
