@@ -85,10 +85,11 @@
                             daily_average[key] += parseFloat(dataM[index][1]);
                         }
                     }
-                    daily_average[key] /= dataM.length;
+                    daily_average[key] /= 73;
                     daily_average[key] = daily_average[key].toFixed(2);
 
                 }
+                console.log(dataM.length, daily_average);
 
                 // ***** A3 Q2 - Code ends ***** //
 

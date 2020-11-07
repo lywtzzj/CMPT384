@@ -80,23 +80,15 @@
                     dataM.push(emptyList);
                 });
                 for (const key in daily_average) {
-                    console.log(daily_average[key]);
-                    // parseFloat(daily_average[key]);
-                    console.log(typeof (daily_average[key]));
                     for (let index = 0; index < dataM.length; index++) {
-                        console.log(typeof (dataM[index][1]));
                         if (key == dataM[index][0]) {
                             daily_average[key] += parseFloat(dataM[index][1]);
-                            console.log(typeof (daily_average[key]));
-                            // debugger
                         }
                     }
-                    daily_average[key] /= dataM.length;
+                    daily_average[key] /= 73;
                     daily_average[key] = daily_average[key].toFixed(2);
-                    console.log(typeof (daily_average[key]));
 
                 }
-                console.log(daily_average);
 
 
                 // ***** A3 Q2 - Your code ends here ***** //
