@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Q1</title>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+
+</head>
+
+<body>
+    <script type="text/javascript">
+        var country;
+        var gem;
+        let output = [];
+        let relationship = [];
+        var projection = d3.geoMercator().scale(100);
+        var svg = d3.select("body").append("svg").attr("width", 1000).attr("height", 900);
+        d3.csv("Country_List.csv").then(data => {
+            let country = data;
+            // country.forEach(element => {
+            //     node = { name: element["Alpha3"], Latitude: element["Latitude"], Longitude: element["Longitude"] };
+            //     output.push(node);
+            // });
+            console.log(country);
+            for (let index = 0; index < country.length; index++) {
+                const element = country[index];
+                node = { name: element["Alpha3"], Latitude: element["Latitude"], Longitude: element["Longitude"] };
+                output.push(node);
+            }
+            svg.selectAll("circle")
+                .data(output)
+                .enter()
+                .append("circle")
+                .attr("class", "nodes")
+                .attr("cx", function (d) { return projection([d.Longitude, d.Latitude])[0] })
+
+                .attr("cy", function (d) { return projection([d.Longitude, d.Latitude])[1] })
+                .attr("r", "2.5px")
+                .style("fill", "red");
+        })
+        d3.csv("gemstone15.csv").then(data => {
+            let gem = data;
+            for (let index = 0; index < gem.length; index++) {
+                const element = gem[index];
+                let each = [];
+                let F = helper(element.Exporter, output);
+                let Fnode = { Ename: F.name, Ex: F.Latitude, Ey: F.Longitude };
+                each.push(Fnode);
+                let S = helper(element["Importer"], output);
+                let Snode = { Iname: S.name, Ix: S.Latitude, Iy: S.Longitude };
+                each.push(Snode);
+                relationship.push(each);
+                // console.log(element);
+                // debugger
+                var line = svg
+                    .selectAll("line")
+                    .data(relationship)
+                    .enter()
+                    .append("line")
+                    .attr("x1", function (d) { return projection([d[0].Ey, d[0].Ex])[0] })
+                    .attr("x2", function (d) { return projection([d[1].Iy, d[1].Ix])[0] })
+                    .attr("y1", function (d) { return projection([d[0].Ey, d[0].Ex])[1] })
+                    .attr("y2", function (d) { return projection([d[1].Iy, d[1].Ix])[1] })
+                    .attr("stroke-width", 0.1)
+                    .attr("stroke", "blue");
+            }
+        })
+        function helper(name, countryList) {
+            for (let index = 0; index < countryList.length; index++) {
+                const element = countryList[index];
+                if (name == element.name) {
+                    return element;
+                }
+            }
+        }
+        console.log(relationship);
+        // console.log(output)
+
+
+    </script>
+</body>
+
+</html>
