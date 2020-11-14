@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Q1</title>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+
+</head>
+
+<body>
+    <script type="text/javascript">
+        let clickTime = 0;
+        var country;
+        var gem;
+        let output = [];
+        let relationship = [];
+        var projection = d3.geoMercator().scale(100);
+        var svg = d3.select("body").append("svg").attr("width", 1000).attr("height", 900);
+
+
+        d3.csv("Country_List.csv").then(data => {
+            let country = data;
+            for (let index = 0; index < country.length; index++) {
+                const element = country[index];
+                node = { name: element["Alpha3"], Latitude: element["Latitude"], Longitude: element["Longitude"] };
+                output.push(node);
+            }
+            // console.log(relationship);
+            var circles = svg.selectAll("circle")
+                .data(output)
+                .enter()
+                .append("circle")
+                .attr("class", "nodes")
+                .attr("cx", function (d) { return projection([d.Longitude, d.Latitude])[0] })
+
+                .attr("cy", function (d) { return projection([d.Longitude, d.Latitude])[1] })
+                .attr("r", "2.5px")
+                .style("fill", "red");
+                // first level first click
+                
+                circles.on("click", function (d) {
+                    // console.log(d);
+                    // clickTime += 1;
+                    let ClickName = d.name;
+                    let exportTo = [];
+                    let importFrom = [];
+                    let point = { x: d.Latitude, y: d.Longitude };
+                    let deleteListForE = [];
+                    let deletetListForI = [];
+                    svg.selectAll("line").remove();
+
+
+
+                    // svg.selectAll("circle").remove();
+                    for (let index = 0; index < relationship.length; index++) {
+                        const element = relationship[index];
+                        if (ClickName == element[0].Ename) {
+                            exportTo.push(element[1]);
+                        }
+                        if (ClickName == element[1].Iname) {
+                            importFrom.push(element[0]);
+                        }
+                    }
+                    svg.selectAll("circle").remove();
+                    // svg.selectAll("circle")
+                    //     .data(point)
+                    //     .enter()
+                    //     .append("circle")
+                    //     .attr("class", "node")
+                    //     .attr("cx", function (d) { return projection([d.y, d.x])[0] })
+
+                    //     .attr("cy", function (d) { return projection([d.y, d.x])[1] })
+                    //     .attr("r", "2.5px")
+                    //     .style("fill", "red");
+                    let addNode = { Ix: point.x, Iy: point.y };
+                    exportTo.push(addNode)
+
+                    var line = svg
+                        .selectAll("line")
+                        .data(exportTo)
+                        .enter()
+                        .append("line")
+                        .attr("x1", function (d) { return projection([point.y, point.x])[0] })
+                        .attr("x2", function (d) { return projection([d.Iy, d.Ix])[0] })
+                        .attr("y1", function (d) { return projection([point.y, point.x])[1] })
+                        .attr("y2", function (d) { return projection([d.Iy, d.Ix])[1] })
+                        .attr("stroke-width", 0.1)
+                        .attr("stroke", "blue");
+
+                    svg.selectAll("circle")
+                        .data(exportTo)
+                        .enter()
+                        .append("circle")
+                        .attr("class", "nodes")
+                        .attr("cx", function (d) { return projection([d.Iy, d.Ix])[0] })
+
+                        .attr("cy", function (d) { return projection([d.Iy, d.Ix])[1] })
+                        .attr("r", "2.5px")
+                        .style("fill", "red")
+
+
+
+                        // second level second click
+                        .on("click", function (d) {
+                            svg.selectAll("circle").remove();
+                            svg.selectAll("line").remove();
+
+                            let addNode = { Ex: point.x, Ey: point.y };
+                            importFrom.push(addNode)
+                            console.log(importFrom);
+
+                            var line = svg
+                                .selectAll("line")
+                                .data(importFrom)
+                                .enter()
+                                .append("line")
+                                .attr("x1", function (d) { return projection([point.y, point.x])[0] })
+                                .attr("x2", function (d) { return projection([d.Ey, d.Ex])[0] })
+                                .attr("y1", function (d) { return projection([point.y, point.x])[1] })
+                                .attr("y2", function (d) { return projection([d.Ey, d.Ex])[1] })
+                                .attr("stroke-width", 0.1)
+                                .attr("stroke", "blue");
+
+                            svg.selectAll("circle")
+                                .data(importFrom)
+                                .enter()
+                                .append("circle")
+                                .attr("class", "nodes")
+                                .attr("cx", function (d) { return projection([d.Ey, d.Ex])[0] })
+
+                                .attr("cy", function (d) { return projection([d.Ey, d.Ex])[1] })
+                                .attr("r", "2.5px")
+                                .style("fill", "red")
+
+
+
+
+                                // thired level thired click
+                                .on("click", function () {
+                                    var line = svg
+                                        .selectAll("line")
+                                        .data(relationship)
+                                        .enter()
+                                        .append("line")
+                                        .attr("x1", function (d) { return projection([d[0].Ey, d[0].Ex])[0] })
+                                        .attr("x2", function (d) { return projection([d[1].Iy, d[1].Ix])[0] })
+                                        .attr("y1", function (d) { return projection([d[0].Ey, d[0].Ex])[1] })
+                                        .attr("y2", function (d) { return projection([d[1].Iy, d[1].Ix])[1] })
+                                        .attr("stroke-width", 0.1)
+                                        .attr("stroke", "blue");
+
+                                    svg.selectAll("circle")
+                                        .data(output)
+                                        .enter()
+                                        .append("circle")
+                                        .attr("class", "nodes")
+                                        .attr("cx", function (d) { return projection([d.Longitude, d.Latitude])[0] })
+
+                                        .attr("cy", function (d) { return projection([d.Longitude, d.Latitude])[1] })
+                                        .attr("r", "2.5px")
+                                        .style("fill", "red")
+                                })
+
+                        })
+
+                    // return;
+                });
+        });
+        //             // if (clickTime == 1) {
+        //             //     clickTime += 1;
+        //                 // svg.selectAll("line").remove();
+
+        //                 svg.selectAll("circle")
+        //                 .data(importFrom)
+        //                 .enter()
+        //                 .append("circle")
+        //                 .attr("class", "nodes")
+        //                 .attr("cx", function (d) { return projection([d.Ey, dEx])[0] })
+
+        //                 .attr("cy", function (d) { return projection([d.Ey, d.Ex])[1] })
+        //                 .attr("r", "2.5px")
+        //                 .style("fill", "red")
+        //                 var line = svg
+        //         .selectAll("line")
+        //         .data(importFrom)
+        //         .enter()
+        //         .append("line")
+        //         .attr("x1", function (d) { return projection([point.y, point.x])[0] })
+        //         .attr("x2", function (d) { return projection([d.Ey, d.Ex])[0] })
+        //         .attr("y1", function (d) { return projection([point.y, point.x])[1] })
+        //         .attr("y2", function (d) { return projection([d.Ey, d.Ex])[1] })
+        //         .attr("stroke-width", 0.1)
+        //         .attr("stroke", "blue");
+        //     return;
+        // }
+        //             if (clickTime == 2) {
+        //     clickTime = 0;
+        //     svg.selectAll("circle")
+        //         .data(output)
+        //         .enter()
+        //         .append("circle")
+        //         .attr("class", "nodes")
+        //         .attr("cx", function (d) { return projection([d.Longitude, d.Latitude])[0] })
+
+        //         .attr("cy", function (d) { return projection([d.Longitude, d.Latitude])[1] })
+        //         .attr("r", "2.5px")
+        //         .style("fill", "red")
+        //     var line = svg
+        //         .selectAll("line")
+        //         .data(relationship)
+        //         .enter()
+        //         .append("line")
+        //         .attr("x1", function (d) { return projection([d[0].Ey, d[0].Ex])[0] })
+        //         .attr("x2", function (d) { return projection([d[1].Iy, d[1].Ix])[0] })
+        //         .attr("y1", function (d) { return projection([d[0].Ey, d[0].Ex])[1] })
+        //         .attr("y2", function (d) { return projection([d[1].Iy, d[1].Ix])[1] })
+        //         .attr("stroke-width", 0.1)
+        //         .attr("stroke", "blue");
+        //     return;
+        // }
+        //         });
+        // })
+
+
+
+        d3.csv("gemstone15.csv").then(data => {
+            let gem = data;
+            for (let index = 0; index < gem.length; index++) {
+                const element = gem[index];
+                let each = [];
+                let F = helper(element.Exporter, output);
+                let Fnode = { Ename: F.name, Ex: F.Latitude, Ey: F.Longitude };
+                each.push(Fnode);
+                let S = helper(element["Importer"], output);
+                let Snode = { Iname: S.name, Ix: S.Latitude, Iy: S.Longitude };
+                each.push(Snode);
+                relationship.push(each);
+                // debugger
+            }
+            function test() {
+                return 1;
+            }
+            var line = svg
+                .selectAll("line")
+                .data(relationship)
+                .enter()
+                .append("line")
+                .attr("x1", function (d) { return projection([d[0].Ey, d[0].Ex])[0] })
+                .attr("x2", function (d) { return projection([d[1].Iy, d[1].Ix])[0] })
+                .attr("y1", function (d) { return projection([d[0].Ey, d[0].Ex])[1] })
+                .attr("y2", function (d) { return projection([d[1].Iy, d[1].Ix])[1] })
+                .attr("stroke-width", 0.1)
+                .attr("stroke", "blue");
+        })
+
+
+
+        function helper(name, countryList) {
+            for (let index = 0; index < countryList.length; index++) {
+                const element = countryList[index];
+                if (name == element.name) {
+                    return element;
+                }
+            }
+        }
+        console.log(relationship);
+        // console.log(output)
+
+
+    </script>
+</body>
+
+</html>
