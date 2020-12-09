@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+
+    <style>
+        svg {
+            display: block;
+            margin: 25px auto;
+        }
+
+        line {
+            stroke: rgb(22, 21, 21);
+            stroke-width: 0.1;
+        }
+    </style>
+</head>
+
+<body>
+
+</body>
+
+<script type="text/javascript">
+    //Width and height
+    var w = 2000;
+    var h = 2000;
+
+    //Original data
+    d3.csv("test.csv").then(data => {
+        let country = data;
+        // console.log(country.length);
+
+        // let dataset = {node: [], edge:[]};
+
+        // for node
+        let newList = [];
+        for (let index = 0; index < country.length; index++) {
+            const element = country[index];
+            if (!newList.includes(element.parent_name)) {
+                newList.push(element.parent_name);
+            }
+        }
+        for (let index = 0; index < country.length; index++) {
+            const element = country[index];
+            if (!newList.includes(element.child_name + " ")) {
+                newList.push(element.child_name + " ");
+            }
+        }
+        // console.log(newList);
+        let edge = [];
+        for (let index = 0; index < country.length; index++) {
+            const element = country[index];
+            edge.push({ source: newList.indexOf(element.parent_name), target: newList.indexOf(element.child_name + " ") })
+        }
+        // console.log(edge);
+        let dataset = { nodes: [], edges: edge };
+        for (let index = 0; index < newList.length; index++) {
+            const element = newList[index];
+            dataset.nodes.push({ name: element })
+        }
+        console.log(dataset);
+        
+
+
+        //Initialize a simple force layout, using the nodes and edges in dataset
+        var force = d3.forceSimulation(dataset.nodes)
+            // Have all the forces interacting.
+            // FORCE NAMES ARE ARBITRARY.
+            // Exist to allow modification later on int the code.
+            .force("charge", d3.forceManyBody())
+            .force("link", d3.forceLink(dataset.edges))
+            .force("center", d3.forceCenter().x(w / 2).y(h / 2));
+
+        var colors = d3.scaleOrdinal(d3.schemeCategory10);
+
+        //Create SVG element
+        var svg = d3.select("body")
+            .append("svg")
+            .attr("width", w)
+            .attr("height", h);
+
+        //Create edges as lines
+        var edges = svg.selectAll("line")
+            .data(dataset.edges)
+            .enter()
+            .append("line");
+
+        //Create nodes as circles
+        var nodes = svg.selectAll("circle")
+            .data(dataset.nodes)
+            .enter()
+            .append("circle")
+            .attr("r", 0.5)
+            .on('mouseover', function (d) {
+                return d.name})
+            .style("fill", function (d, i) {
+                return colors(i);
+            });
+
+        //Add a simple tooltip
+        nodes.append("title")
+            .text(function (d) {
+                return d.name;
+            });
+
+        //Every time the simulation "ticks", this will be called
+        var count = 0;
+        force.on("tick", function () {
+
+            edges.attr("x1", function (d) {
+                return d.source.x / 5 + 300;
+            })
+                .attr("y1", function (d) {
+                    return d.source.y / 5 + 300;
+                })
+                .attr("x2", function (d) {
+                    return d.target.x / 5 + 300;
+                })
+                .attr("y2", function (d) {
+                    return d.target.y / 5 + 300;
+                });
+
+            nodes.attr("cx", function (d) {
+                return d.x / 5 + 300;
+            })
+                .attr("cy", function (d) {
+                    return d.y / 5 + 300;
+                });
+            console.log(count++);
+
+            // });
+        });
+    })
+
+</script>
+
+
+</html>
